@@ -25,6 +25,7 @@ class CR4MapMenu extends CR4MenuBase
 	private var m_fxSetDefaultPosition : CScriptedFlashFunction;
 	private var m_fxShowToussaint : CScriptedFlashFunction;
 	private var m_fxSetHighlightedMapPin : CScriptedFlashFunction;
+	protected var fastTravelCostMoney : FastTravelCostMoney; // modFastTravelCostMoney
 	
 	private var m_userPinNames : array< name >;
 
@@ -1158,7 +1159,8 @@ class CR4MapMenu extends CR4MenuBase
 		var loadingInitData : W3MenuInitData;
 		var contentTag : name;
 		var progress : float;
-		var rootMenu : CR4Menu;
+		// var rootMenu : CR4Menu; // modFastTravelCostMoney
+		var notFromPost : bool; // modFastTravelCostMoney
 		
 		manager	= theGame.GetCommonMapManager();
 		if ( !manager )
@@ -1214,29 +1216,53 @@ class CR4MapMenu extends CR4MenuBase
 			else
 			{
 				initData = (W3MapInitData)GetMenuInitData();
+				// modFastTravelCostMoney++
+				notFromPost = false;
 				if ( !initData )
 				{
-					showNotification( GetLocStringByKeyExt("panel_map_cannot_travel") );
-					OnPlaySoundEvent("gui_global_denied");
-					return false;
+					notFromPost = true;
 				}
-				fastTravelEntity = (W3FastTravelEntity)initData.GetUsedFastTravelEntity();
-				if (fastTravelEntity && fastTravelEntity.entityName == pinTag)
+				if ( initData )
 				{
-					showNotification( GetLocStringByKeyExt("panel_map_cannot_travel_already_here") );
-					OnPlaySoundEvent("gui_global_denied");
-					return false;
-				}
-				if ( initData.GetTriggeredExitEntity() )
-				{
-					
-					initData.SetTriggeredExitEntity( false );
+					fastTravelEntity = (W3FastTravelEntity)initData.GetUsedFastTravelEntity();
+					if (fastTravelEntity && fastTravelEntity.entityName == pinTag)
+					{
+						showNotification( GetLocStringByKeyExt("panel_map_cannot_travel_already_here") );
+						OnPlaySoundEvent("gui_global_denied");
+						return false;
+					}
+					if ( initData.GetTriggeredExitEntity() )
+					{
+						
+						initData.SetTriggeredExitEntity( false );
+					}
 				}
 			}
 		}
-		
+
+		if ( notFromPost )
+		{
+			fastTravelCostMoney = new FastTravelCostMoney in this;
+			fastTravelCostMoney.mapMenuRef = this;
+			fastTravelCostMoney.Init(pinTag, areaId);
+		}
+		else
+		{
+			FastTravel(pinTag, areaId);
+		}
+		// modFastTravelCostMoney--
+		return true;
+	}
+
+	// modFastTravelCostMoney++
+	public function FastTravel(pinTag : name, areaId : int)
+	{
+		var manager	: CCommonMapManager;
+		var rootMenu : CR4Menu;
+
+		manager	= theGame.GetCommonMapManager();
+
 		manager.UseMapPin( pinTag, true );
-		
 		
 		if (areaId == -1)
 		{
@@ -1245,12 +1271,21 @@ class CR4MapMenu extends CR4MenuBase
 		
 		if ( m_currentArea == areaId )
 		{
+			if ( thePlayer.IsUsingHorse() )
+			{
+				thePlayer.AddTimer('FixHorseSpeed', 0.1, false);
+				thePlayer.AddTimer('PlayerInstantDismount', 0.2, false);
+				thePlayer.AddTimer('BorderTeleportFadeInTimer', 1.5, false);
+				theGame.FadeOutAsync( 0 );
+				theGame.SetFadeLock('PlayerTeleportation');
+			}
 			manager.PerformLocalFastTravelTeleport( pinTag );
 			theGame.Unpause("menus");
 			if ( !theGame.IsGameTimePaused() )
 			{
 				theGame.SetGameTime( theGame.GetGameTime() + GameTimeCreate(0, RoundF( RandF() * 4 ), RoundF( RandF() * 60 ), RoundF( RandF() * 60 ) ), true);
 			}
+
 		}
 		else
 		{
@@ -1267,9 +1302,9 @@ class CR4MapMenu extends CR4MenuBase
 		{
 			rootMenu.CloseMenu();
 		}
-		return true;
 	}
-	
+	// modFastTravelCostMoney--
+
 	function UpdateTitle()
 	{
 		GetMenuFlashValueStorage().SetFlashString("worldmap.title.set", GetMapTitle(), -1 );
