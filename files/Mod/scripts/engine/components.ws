@@ -97,8 +97,14 @@ import class CInteractionComponent extends CInteractionAreaComponent
 	hint aimVector = "Offset from component center for camera to check whether the component is visible";
 	hint iconOffset = "Offset from component center where the interaction icon will be shown";
 	hint iconOffsetSlotName = "If there is a slot with the name, the icon offset position will match this slot position";
-	
-	public function IsEnabledOnHorse() : bool { return isEnabledOnHorse; }
+
+
+	public function IsEnabledOnHorse() : bool
+	{
+		if ( GetInputActionName() == 'FastTravel' )
+			return true;
+		return isEnabledOnHorse;
+	}
 
 	public function IsEnabledInCombat() : bool 	{return isEnabledInCombat;}
 
@@ -131,7 +137,9 @@ import class CInteractionComponent extends CInteractionAreaComponent
 	
 	event OnInteraction( actionName : string, activator : CEntity )
 	{
-		
+		if ( thePlayer.IsUsingHorse() && GetInputActionName() == 'FastTravel' )
+			thePlayer.AddTimer('FixHorseSpeed', 0.1, false);
+
 		if ( theGame.GetInteractionsManager().GetActiveInteraction() == this )
 		{
 			if ( thePlayer.IsInCombat() && !thePlayer.IsSwimming() )
