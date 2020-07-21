@@ -429,6 +429,17 @@ statemachine class W3PlayerWitcher extends CR4Player
 			}
 		}
 	}	
+
+	// modFastTravelCostMoney++
+	timer function FixHorseSpeed(dt : float, id : int)
+	{
+		((W3HorseComponent)theGame.GetEntityByTag('playerHorse').GetComponentByClassName('W3HorseComponent')).OnStopTheVehicleInstant();
+	}
+	timer function PlayerInstantDismount(dt : float, id : int)
+	{
+		InstantDismountPlayer();
+	}
+	// modFastTravelCostMoney--
 	
 	event OnAbilityAdded( abilityName : name)
 	{
