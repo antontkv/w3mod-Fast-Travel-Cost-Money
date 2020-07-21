@@ -101,8 +101,10 @@ import class CInteractionComponent extends CInteractionAreaComponent
 
 	public function IsEnabledOnHorse() : bool
 	{
+		// modFastTravelCostMoney++
 		if ( GetInputActionName() == 'FastTravel' )
 			return true;
+		// modFastTravelCostMoney--
 		return isEnabledOnHorse;
 	}
 
@@ -137,8 +139,10 @@ import class CInteractionComponent extends CInteractionAreaComponent
 	
 	event OnInteraction( actionName : string, activator : CEntity )
 	{
+		// modFastTravelCostMoney++
 		if ( thePlayer.IsUsingHorse() && GetInputActionName() == 'FastTravel' )
 			thePlayer.AddTimer('FixHorseSpeed', 0.1, false);
+		// modFastTravelCostMoney--
 
 		if ( theGame.GetInteractionsManager().GetActiveInteraction() == this )
 		{
