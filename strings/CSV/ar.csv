@@ -1,0 +1,5 @@
+;meta[language=ar]
+; id | key(hex) | key(str) | text
+2115001000|2D6D7131|fast_travel_cost_money_no_money|Not enough money for Fast Travel. Need:
+2115001001|C21E2465|fast_travel_cost_money_popup_message|Fast Travel Cost Money. Pay:
+
